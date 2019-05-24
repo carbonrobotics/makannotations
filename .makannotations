@@ -1,0 +1,117 @@
+{
+    "version": 2,
+    "slider_settings": {
+        "example": {
+            "algo_stack": "[[\"Algorithm.LAB_AUTO_MASK\", \"None\"], [\"Algorithm.CLOSING_ITERATIONS\", \"17\"]]",
+            "clusters_amount": 10,
+            "removing_objects_size": 10,
+            "closing_iterations_image": 17,
+            "dilation_iterations": 4,
+            "erosion_iterations": 3
+        }
+    },
+    "host_urls_list": [],
+    "layers": {
+        "dog": {
+            "corgi": {},
+            "pitbull": {},
+            "pug": {}
+        },
+        "cat": {}
+    },
+    "colors": [
+        [
+            26,
+            219,
+            210,
+            0
+        ],
+        [
+            9,
+            33,
+            217,
+            0
+        ],
+        [
+            131,
+            48,
+            255,
+            0
+        ],
+        [
+            217,
+            13,
+            217,
+            0
+        ],
+        [
+            242,
+            10,
+            10,
+            1
+        ],
+        [
+            26,
+            219,
+            210,
+            1
+        ],
+        [
+            9,
+            33,
+            217,
+            1
+        ],
+        [
+            131,
+            48,
+            255,
+            1
+        ],
+        [
+            217,
+            13,
+            217,
+            1
+        ],
+        [
+            26,
+            219,
+            210,
+            2
+        ],
+        [
+            242,
+            10,
+            10,
+            0
+        ],
+        [
+            9,
+            33,
+            217,
+            2
+        ],
+        [
+            131,
+            48,
+            255,
+            2
+        ],
+        [
+            217,
+            13,
+            217,
+            2
+        ],
+        [
+            242,
+            10,
+            10,
+            2
+        ]
+    ],
+    "help_links": {},
+    "s3_bucket_prefix": "",
+    "filesystem_label_prefix": "~/labels"
+}

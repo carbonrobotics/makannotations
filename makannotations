@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2020 Maka Autonomous Robotic Systems, Inc.
+#
+# This file is part of Makannotations.
+#
+# Makannotations is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Makannotations is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+from PyQt5.QtWidgets import QApplication
+from maka_ui.main_window import MainWindow
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run makanotations")
+    parser.add_argument("-o", "--open-path", help="Open a directory or an image")
+    parser.add_argument("-ts", "--torchscript-model", help="Path to a TorchScript model")
+    parser.add_argument("--remote-host")
+    parser.add_argument("--ssl", default=False, action="store_true")
+    args = parser.parse_args()
+
+    app = QApplication([])
+    window = MainWindow(app)
+    window.show()
+    # after show
+    window.process_args(args)
+
+    app.exec_()
+
+    window.save_config()
+
+
+if __name__ == "__main__":
+    main()

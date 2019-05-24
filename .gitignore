@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__
+*.pyc
+
+# PyCharm IDE
+.idea/
+
+# VSCode IDE
+.vscode/
+
+# pyenv
+.python-version
+
+# Mac
+.DS_Store
+
+# Models
+*.pth
+
+# Exuberant ctags
+tags
+
+labeling_project/

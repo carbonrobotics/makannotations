@@ -1,0 +1,10 @@
+opencv-python-headless
+PyQt5!=5.15.0,!=5.14.2,!=5.14.1
+PyQt5-sip
+scipy
+aenum
+Pillow
+scikit-image
+matplotlib
+boto3
+awscli
