@@ -1,5 +1,5 @@
 opencv-python-headless
-PyQt5!=5.15.0,!=5.14.2,!=5.14.1
+PyQt5!=5.15.1,!=5.15.0,!=5.14.2,!=5.14.1,!=5.14.0,!=5.13.2
 PyQt5-sip
 scipy
 aenum
