@@ -31,7 +31,7 @@ from skimage.segmentation import flood_fill
 from typing import List, Tuple
 
 import torchscript_model
-from file_io import read_file
+from file_io import file_exists, delete_file, read_file, write_file
 from foreground_background_detection import (
     grab_cut_algo,
     image_bright_auto_mask,
@@ -53,7 +53,7 @@ POLYGON_LINE_ERASER_COLOR = [0, 0, 0]
 
 
 def load_image(metadata, path, filename):
-    data = read_file(path, filename)
+    data = read_file(os.path.join(path, filename))
 
     if filename.endswith(".npz"):
         image_meta = metadata.get_image_metadata(filename)
@@ -174,9 +174,10 @@ def index_of_elements_last_occurrence(stack, element):
 
 
 def load_mask(label_file, mask):
-    if not os.path.isfile(label_file):
+    label_mask_bytes = read_file(label_file)
+    if label_mask_bytes is None:
         return np.zeros_like(mask)
-    label_mask = cv2.imread(label_file, cv2.IMREAD_GRAYSCALE)
+    label_mask = cv2.imdecode(np.frombuffer(label_mask_bytes, np.byte), cv2.IMREAD_GRAYSCALE)
     label_mask = label_mask.astype("bool")
     np.logical_or(label_mask, mask, mask)
 
@@ -185,11 +186,11 @@ def load_mask(label_file, mask):
 
 def save_mask(label_filename, mask):
     if not mask.any():
-        if os.path.isfile(label_filename):
-            os.remove(label_filename)
+        if file_exists(label_filename):
+            delete_file(label_filename)
         return
     mask = np.where(mask == True, 255, 0).astype("uint8")  # noqa
-    cv2.imwrite(label_filename, mask)
+    write_file(label_filename, cv2.imencode(".png", mask)[1])
 
 
 class MaskImage:
@@ -239,7 +240,7 @@ class MaskImage:
     def from_file(
         filename,
         loader,
-        label_path,
+        path,
         mask_image,
         mask_only,
         show_depth,
@@ -264,7 +265,7 @@ class MaskImage:
             return None
         return MaskImage.from_image(
             filename,
-            label_path,
+            path,
             img,
             depth,
             mask_image,
@@ -290,7 +291,7 @@ class MaskImage:
     @staticmethod
     def from_image(
         filename,
-        label_path,
+        path,
         img,
         depth,
         mask_image,
@@ -317,7 +318,7 @@ class MaskImage:
                 filename,
                 img,
                 depth,
-                label_path,
+                path,
                 layer=layer,
                 image_has_mask_callback=image_has_mask_callback,
                 update_layer_has_mask=update_layer_has_mask,
@@ -337,7 +338,7 @@ class MaskImage:
                 mask_color=mask_color,
                 normalized_roi=normalized_roi,
             )
-            label_filename = MaskImage.make_label_filename(label_path, filename, layer)
+            label_filename = MaskImage.make_label_filename(path, filename, layer)
             img.load_image_mask(label_filename)
             return img
         return None
@@ -347,7 +348,7 @@ class MaskImage:
         image_filename,
         img,
         depth,
-        label_path,
+        path,
         layer,
         image_has_mask_callback,
         update_layer_has_mask,
@@ -371,7 +372,7 @@ class MaskImage:
         self.image_filename = image_filename
         self.origin_img = img
         self.depth = depth
-        self.label_path = label_path
+        self.path = path
         self.mask_stack = []
         self.boxes_stack = []
         self.seeds_stack = []
@@ -448,9 +449,9 @@ class MaskImage:
 
     def save_certification_file(self):
         certification_filepath = CertificationData.make_certification_filename(
-            self.label_path, self.image_filename, self.layer
+            self.path, self.image_filename, self.layer
         )
-        mask_filepath = MaskImage.make_label_filename(self.label_path, self.image_filename, self.layer)
+        mask_filepath = MaskImage.make_label_filename(self.path, self.image_filename, self.layer)
         previous_certification_data = CertificationData.load(certification_filepath)
         if previous_certification_data is None or previous_certification_data.modify(
             self._mask_certified, self._is_mask_modified(), self._hard_example
@@ -474,7 +475,7 @@ class MaskImage:
         self._update_mask()
 
     def save_image_mask(self):
-        label_filename = MaskImage.make_label_filename(self.label_path, self.image_filename, self.layer)
+        label_filename = MaskImage.make_label_filename(self.path, self.image_filename, self.layer)
         if self._is_mask_modified():
             save_mask(label_filename, self.mask())
 
@@ -483,7 +484,7 @@ class MaskImage:
 
     def create_destination_layer_file(self):
         self.destination_layer_file = MaskImage.make_label_filename(
-            self.label_path, self.image_filename, self.destination_layer
+            self.path, self.image_filename, self.destination_layer
         )
 
     def move_mask(self):
@@ -529,7 +530,7 @@ class MaskImage:
 
     def update_destination_layer_certification_data(self, md5sum):
         destination_layer_certification_filepath = CertificationData.make_certification_filename(
-            self.label_path, self.image_filename, self.destination_layer
+            self.path, self.image_filename, self.destination_layer
         )
         destination_layer_certification_data = CertificationData.load(destination_layer_certification_filepath)
         new_certification_data = CertificationData(

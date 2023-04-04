@@ -692,11 +692,9 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
         self.settings_map = {}
         self._host_urls_list = None
         self._bucket_prefix = None
-        self._filesystem_label_prefix = None
-        self._filesystem_label_prefix_raw = None
 
-        self._filesystem_label_path: str = ""
-        self._metadata = DirectoryMetadata.load(self._filesystem_label_path)
+        self._path: str = ""
+        self._metadata = DirectoryMetadata.load(self._path)
         self._loader = functools.partial(load_image, self._metadata, "")
 
         self._profile = None
@@ -1214,7 +1212,7 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
 
     @property
     def images_path(self) -> str:
-        return self._filesystem_label_path
+        return self._path
 
     @property
     def layers(self) -> List[str]:
@@ -1381,11 +1379,6 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
         self.color_palette = config.get("colors")
         self.layers_help = config.get("help_links")
         self._bucket_prefix = config.get("s3_bucket_prefix")
-        label_prefix = config.get("filesystem_label_prefix")
-        if label_prefix is not None:
-            self._filesystem_label_prefix_raw = label_prefix
-            label_prefix = os.path.expandvars(os.path.expanduser(label_prefix))
-            self._filesystem_label_prefix = label_prefix
 
     def save_config(self):
         with open(self.config_file, "r") as f:
@@ -1398,7 +1391,6 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
             "colors": self.color_palette,
             "help_links": self.layers_help,
             "s3_bucket_prefix": self._bucket_prefix,
-            "filesystem_label_prefix": self._filesystem_label_prefix_raw,
         }
 
         for k in list(home_config.keys()):
@@ -1438,14 +1430,6 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
         ofd = S3ListDialog(self._bucket_prefix)
         path = ofd.getSelection()
         if path is not None:
-            if self._filesystem_label_prefix is None:
-                print("Need to set filesystem_label_prefix in config file.")
-                return
-            pathpart = "/".join(path.split("/")[len(self._bucket_prefix.split("/")) :])
-            self._filesystem_label_path = os.path.join(self._filesystem_label_prefix, pathpart)
-            self._metadata = DirectoryMetadata.load(self._filesystem_label_path)
-            self._loader = functools.partial(load_image, self._metadata, path)
-            os.makedirs(self._filesystem_label_path, exist_ok=True)
             self.load_s3_images(path)
 
     def load_path(self, path):
@@ -1456,6 +1440,13 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
             self.load_images(path)
 
     def load_s3_images(self, path):
+        if path is None or len(path) == 0:
+            return
+
+        self._path = path
+        self._metadata = DirectoryMetadata.load(self._path)
+        self._loader = functools.partial(load_image, self._metadata, path)
+
         images = get_file_listing(path)
         self._images = []
         for ext in EXTENSIONS:
@@ -1470,8 +1461,8 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
         if path is None or len(path) == 0:
             return
 
-        self._filesystem_label_path = path
-        self._metadata = DirectoryMetadata.load(self._filesystem_label_path)
+        self._path = path
+        self._metadata = DirectoryMetadata.load(self._path)
         self._loader = functools.partial(load_image, self._metadata, path)
 
         masks = set()
@@ -1522,7 +1513,7 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
             self.inch_grid_checkbox.setEnabled(True)
         image_title = f"# {self.current_image_index + 1} {image_name}"
         self.setWindowTitle(image_title)
-        self.ic.load_image(self._images[self.current_image_index], self._loader, self._filesystem_label_path, ppi)
+        self.ic.load_image(self._images[self.current_image_index], self._loader, self._path, ppi)
 
         if not self.ic.has_depth:
             self.show_depth_checkbox.setChecked(False)
@@ -1722,8 +1713,8 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
             print("No image url for {}".format(self._host_urls_index))
             return
         mask = None
-        if self._filesystem_label_path:
-            path = self._filesystem_label_path + "/"
+        if self._path:
+            path = self._path + "/"
         else:
             path = ""
         try:

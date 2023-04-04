@@ -21,6 +21,8 @@ import hashlib
 import os
 from typing import List, Optional
 
+from file_io import read_file, write_file
+
 META_JSON = "meta.json"
 DEFAULT_CERTIFICATION_VERSION = 1
 DEFAULT_CERTIFICATION_SOURCE = "makannotations"
@@ -130,10 +132,10 @@ class DirectoryMetadata:
     def load(dirpath: str) -> "DirectoryMetadata":
         path = os.path.join(dirpath, META_JSON)
         patterns = []
-        if os.path.isfile(path):
+        meta_json_bytes = read_file(path)
+        if meta_json_bytes is not None:
             try:
-                with open(path, "r") as f:
-                    meta_json = json.load(f)
+                meta_json = json.loads(meta_json_bytes)
                 for pat_json in meta_json:
                     if not pat_json.get("makannotations", True):
                         continue
@@ -197,11 +199,11 @@ class CertificationData:
 
     @staticmethod
     def calculate_md5sum(mask_filename):
-        if os.path.exists(mask_filename):
-            with open(mask_filename, "rb") as f:
-                m = hashlib.md5()
-                m.update(f.read())
-                return m.hexdigest()
+        mask_bytes = read_file(mask_filename)
+        if mask_bytes is not None:
+            m = hashlib.md5()
+            m.update(mask_bytes)
+            return m.hexdigest()
         else:
             return DEFAULT_MD5SUM
 
@@ -223,8 +225,7 @@ class CertificationData:
         }
 
     def write(self, filepath):
-        with open(filepath, "w") as f:
-            json.dump(self.to_json(), f, indent=4)
+        write_file(filepath, json.dumps(self.to_json(), indent=4).encode())
 
     @staticmethod
     def from_json(json):
@@ -240,11 +241,11 @@ class CertificationData:
 
     @staticmethod
     def load(filepath):
-        if os.path.exists(filepath):
+        config_bytes = read_file(filepath)
+        if config_bytes is not None:
             try:
-                with open(filepath, "r") as f:
-                    config = json.load(f)
-                    return CertificationData.from_json(config)
+                config = json.loads(config_bytes)
+                return CertificationData.from_json(config)
             except Exception as e:
                 print("certification file load failure:", e)
         return CertificationData()

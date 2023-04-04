@@ -38,7 +38,6 @@ Makannotations is an image annotation tool for creating mask annotations. It all
   * `help-links` (optional) - list for url links with more information about categories (can be empty).
 
   * `s3_bucket_prefix` (optional) - aws s3 directory prefix.
-  * `filesystem_label_prefix` (optional) - directory to store labels locally (when using s3_bucket_prefix).
 
 ## Functionality
 

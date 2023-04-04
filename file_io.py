@@ -21,11 +21,29 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def read_file(path: str, filename: str) -> bytes:
+def file_exists(path: str) -> bool:
     if path.startswith("s3://"):
         parts = path[5:].split("/")
         bucket = parts[0]
-        path = "/".join(parts[1:] + [filename])
+        path = "/".join(parts[1:])
+        s3 = boto3.resource("s3")
+        object = s3.Object(bucket, path)
+        try:
+            object.load()
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                return False
+            raise
+    else:
+        return os.path.exists(path)
+
+
+def read_file(path: str) -> bytes:
+    if path.startswith("s3://"):
+        parts = path[5:].split("/")
+        bucket = parts[0]
+        path = "/".join(parts[1:])
         s3 = boto3.resource("s3")
         object = s3.Object(bucket, path)
         try:
@@ -35,18 +53,33 @@ def read_file(path: str, filename: str) -> bytes:
                 return None
             raise
     else:
-        with open(os.path.join(path, filename), "rb") as f:
+        if not os.path.exists(path):
+            return None
+
+        with open(path, "rb") as f:
             return f.read()
 
 
-def write_file(path: str, filename: str, data: bytes) -> None:
+def write_file(path: str, data: bytes) -> None:
     if path.startswith("s3://"):
         parts = path[5:].split("/")
         bucket = parts[0]
-        path = "/".join(parts[1:] + [filename])
+        path = "/".join(parts[1:])
         s3 = boto3.resource("s3")
         object = s3.Object(bucket, path)
         object.put(Body=data)
     else:
-        with open(os.path.join(path, filename), "wb") as f:
+        with open(path, "wb") as f:
             f.write(data)
+
+
+def delete_file(path: str) -> None:
+    if path.startswith("s3://"):
+        parts = path[5:].split("/")
+        bucket = parts[0]
+        path = "/".join(parts[1:])
+        s3 = boto3.resource("s3")
+        object = s3.Object(bucket, path)
+        object.delete()
+    else:
+        os.remove(path)

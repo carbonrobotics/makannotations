@@ -28,6 +28,7 @@ from PyQt5.QtCore import QRect, QSize, Qt
 from PyQt5.QtGui import QColor, QCursor, QImage, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import QLabel
 
+from file_io import file_exists
 import torchscript_model
 from mask_image import MaskImage, DEFAULT_MASK_COLOR
 from metadata import CertificationData, DEFAULT_CERTIFICATION_VERSION
@@ -115,7 +116,7 @@ class ImageCanvas(QLabel):
         self.mask_only = False
         self.show_depth = False
         self.filename = None
-        self.label_path = None
+        self.path = None
         self.setMouseTracking(True)
         self.status_widget = None
         self.algorithms_widget = None
@@ -218,7 +219,7 @@ class ImageCanvas(QLabel):
     @staticmethod
     def layer_has_mask(path, image_filename, layer):
         mask_filename = MaskImage.make_label_filename(path, image_filename, layer)
-        return os.path.exists(mask_filename)
+        return file_exists(mask_filename)
 
     def set_layer_certified(self, layer, certified):
         if self.img is None:
@@ -239,9 +240,9 @@ class ImageCanvas(QLabel):
         self.layers_hard_example[layer] = hard_example
 
     def process_certification_data(self, layer):
-        if self.label_path is None or self.filename is None:
+        if self.path is None or self.filename is None:
             return
-        certification_filepath = CertificationData.make_certification_filename(self.label_path, self.filename, layer)
+        certification_filepath = CertificationData.make_certification_filename(self.path, self.filename, layer)
         previous_certification_data = CertificationData.load(certification_filepath)
         if (
             previous_certification_data.hard_example != self.layers_hard_example[layer]
@@ -263,30 +264,19 @@ class ImageCanvas(QLabel):
             self.process_certification_data(layer)
 
     @staticmethod
-    def get_certification_file_flag(certification_filename, flag_name):
-        flag_status = False
-        if os.path.exists(certification_filename):
-            try:
-                with open(certification_filename, "r") as f:
-                    config = json.load(f)
-                    flag_status = config.get(flag_name, False)
-            except Exception as e:
-                print("certification file load failure:", e)
-
-        return flag_status
-
-    @staticmethod
     def certification_status(certification_filename):
-        return ImageCanvas.get_certification_file_flag(certification_filename, "certified")
+        certification_data = CertificationData.load(certification_filename)
+        return certification_data.certified
 
     @staticmethod
     def hard_example_status(certification_filename):
-        return ImageCanvas.get_certification_file_flag(certification_filename, "hard_example")
+        certification_data = CertificationData.load(certification_filename)
+        return certification_data.hard_example
 
     def update_layer_checkboxes(self, layers_checkboxes, layers_cache, checked_status_function):
         for layer, checkbox in layers_checkboxes.items():
             certification_filename = CertificationData.make_certification_filename(
-                self.label_path, self.filename, layer
+                self.path, self.filename, layer
             )
             status = checked_status_function(certification_filename)
             layers_cache[layer] = status
@@ -308,7 +298,7 @@ class ImageCanvas(QLabel):
             if layer == self.layer:
                 layers_has_mask[layer] = self.img.mask().any()
             else:
-                layers_has_mask[layer] = ImageCanvas.layer_has_mask(self.label_path, self.filename, layer)
+                layers_has_mask[layer] = ImageCanvas.layer_has_mask(self.path, self.filename, layer)
 
     def set_mode_to_btn(self, mode_to_btn):
         self.mode_to_btn = mode_to_btn
@@ -777,22 +767,22 @@ class ImageCanvas(QLabel):
                     self.colors_masks.append([color, mask.astype(np.bool)])
 
     def get_mask(self, layer):
-        label_file = MaskImage.make_label_filename(self.label_path, self.filename, layer)
+        label_file = MaskImage.make_label_filename(self.path, self.filename, layer)
         mask = cv2.imread(label_file, cv2.IMREAD_GRAYSCALE)
         return mask
 
-    def load_image(self, filename, loader, label_path, ppi_value=None):
+    def load_image(self, filename, loader, path, ppi_value=None):
         if self.filename is not None:
             self.process_layers_certification_data()
         self.filename = filename
-        self.label_path = label_path
+        self.path = path
         self.ppi_value = ppi_value
         self.save_layer_data()
         self.update_colors_masks_information()
         img = MaskImage.from_file(
             self.filename,
             loader,
-            label_path,
+            path,
             self.mask_images,
             self.mask_only,
             self.show_depth,
@@ -829,7 +819,7 @@ class ImageCanvas(QLabel):
             self.update_colors_masks_information()
             img = MaskImage.from_image(
                 self.filename,
-                self.label_path,
+                self.path,
                 img_data,
                 depth_data,
                 self.mask_images,
