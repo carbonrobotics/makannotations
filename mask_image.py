@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+import io
 import os
 
 import cv2
@@ -30,6 +31,7 @@ from skimage.segmentation import flood_fill
 from typing import List, Tuple
 
 import torchscript_model
+from file_io import read_file
 from foreground_background_detection import (
     grab_cut_algo,
     image_bright_auto_mask,
@@ -50,15 +52,16 @@ DEFAULT_MASK_COLOR = [255, 0, 0]
 POLYGON_LINE_ERASER_COLOR = [0, 0, 0]
 
 
-def filesystem_load_image(metadata, path, filename):
-    filepath = os.path.join(path, filename)
+def load_image(metadata, path, filename):
+    data = read_file(path, filename)
 
     if filename.endswith(".npz"):
         image_meta = metadata.get_image_metadata(filename)
         assert image_meta is not None
         assert image_meta.npz_rgb_key is not None or image_meta.npz_depth_key is not None
 
-        image_dict = np.load(filepath)
+        np_file = io.BytesIO(data)
+        image_dict = np.load(np_file)
 
         if image_meta.npz_rgb_key is not None:
             image = image_dict[image_meta.npz_rgb_key]
@@ -72,7 +75,7 @@ def filesystem_load_image(metadata, path, filename):
 
         return image, depth
 
-    return cv2.cvtColor(cv2.imread(filepath), cv2.COLOR_BGR2RGB), None
+    return cv2.cvtColor(cv2.imdecode(np.frombuffer(data, np.byte), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB), None
 
 
 def create_mask(img, mina, maxa, minb, maxb, minc, maxc):

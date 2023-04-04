@@ -57,11 +57,10 @@ from PyQt5.QtWidgets import (
 
 import torchscript_model
 from image_canvas import ImageCanvas, Settings
-from mask_image import filesystem_load_image
+from mask_image import load_image
 from metadata import DirectoryMetadata
 from s3list_dialog import S3ListDialog
 from checkbox_dialog import CheckboxDialog
-from s3utils import get_file_image_data as s3_get_file_image_data
 from s3utils import get_file_listing
 from utils import timestamp_filename
 from maka_ui.navigation import NavigationSlider
@@ -698,7 +697,7 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
 
         self._filesystem_label_path: str = ""
         self._metadata = DirectoryMetadata.load(self._filesystem_label_path)
-        self._loader = functools.partial(filesystem_load_image, self._metadata, "")
+        self._loader = functools.partial(load_image, self._metadata, "")
 
         self._profile = None
         self.hotkeys_list = []
@@ -1445,7 +1444,7 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
             pathpart = "/".join(path.split("/")[len(self._bucket_prefix.split("/")) :])
             self._filesystem_label_path = os.path.join(self._filesystem_label_prefix, pathpart)
             self._metadata = DirectoryMetadata.load(self._filesystem_label_path)
-            self._loader = functools.partial(s3_get_file_image_data, self._metadata, path)
+            self._loader = functools.partial(load_image, self._metadata, path)
             os.makedirs(self._filesystem_label_path, exist_ok=True)
             self.load_s3_images(path)
 
@@ -1473,7 +1472,7 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
 
         self._filesystem_label_path = path
         self._metadata = DirectoryMetadata.load(self._filesystem_label_path)
-        self._loader = functools.partial(filesystem_load_image, self._metadata, path)
+        self._loader = functools.partial(load_image, self._metadata, path)
 
         masks = set()
         masks_extensions = ["*.mask_{}.png".format(layer) for layer in self._layers]

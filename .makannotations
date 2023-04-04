@@ -112,6 +112,6 @@
         ]
     ],
     "help_links": {},
-    "s3_bucket_prefix": "",
+    "s3_bucket_prefix": "s3://bucket/path",
     "filesystem_label_prefix": "~/labels"
 }
