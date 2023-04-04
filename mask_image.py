@@ -54,6 +54,8 @@ POLYGON_LINE_ERASER_COLOR = [0, 0, 0]
 
 def load_image(metadata, path, filename):
     data = read_file(os.path.join(path, filename))
+    if data is None:
+        raise Exception("File not found: {}/{}".format(path, filename))
 
     if filename.endswith(".npz"):
         image_meta = metadata.get_image_metadata(filename)
