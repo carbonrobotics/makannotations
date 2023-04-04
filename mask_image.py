@@ -192,7 +192,8 @@ def save_mask(label_filename, mask):
             delete_file(label_filename)
         return
     mask = np.where(mask == True, 255, 0).astype("uint8")  # noqa
-    write_file(label_filename, cv2.imencode(".png", mask)[1])
+    mask_encoded = cv2.imencode(".png", mask)[1]
+    write_file(label_filename, np.array(mask_encoded).tobytes())
 
 
 class MaskImage:
