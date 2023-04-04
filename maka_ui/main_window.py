@@ -1078,18 +1078,18 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
 
         # Filters data
         self.filters: Dict[Filters, Union[FilterUI, LayerFiltersUI]] = {
-            Filters.SKIP_CERTIFIED_IMAGES: FilterUI(SkipCertifiedImagesFilter(self.navigation_slider)),
-            Filters.HARD_EXAMPLE: FilterUI(HardExampleFilter(self.navigation_slider)),
-            Filters.LAYER: LayerFiltersUI(
-                [
-                    LayerFilterUI(LayerHasMask(self.navigation_slider)),
-                    LayerFilterUI(LayerHasNoMask(self.navigation_slider)),
-                    LayerFilterUI(LayerCertified(self.navigation_slider)),
-                    LayerFilterUI(LayerNotCertified(self.navigation_slider)),
-                ]
-            ),
+            # Filters.SKIP_CERTIFIED_IMAGES: FilterUI(SkipCertifiedImagesFilter(self.navigation_slider)),
+            # Filters.HARD_EXAMPLE: FilterUI(HardExampleFilter(self.navigation_slider)),
+            # Filters.LAYER: LayerFiltersUI(
+            #     [
+            #         LayerFilterUI(LayerHasMask(self.navigation_slider)),
+            #         LayerFilterUI(LayerHasNoMask(self.navigation_slider)),
+            #         LayerFilterUI(LayerCertified(self.navigation_slider)),
+            #         LayerFilterUI(LayerNotCertified(self.navigation_slider)),
+            #     ]
+            # ),
         }
-        self.filters[Filters.LAYER].set_active_layer(self._layers[0])
+        # self.filters[Filters.LAYER].set_active_layer(self._layers[0])
 
         """Information stored for current image: {layer: value}"""
         self._layers_has_mask: Dict[str:bool] = {}
