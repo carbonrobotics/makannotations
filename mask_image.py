@@ -382,7 +382,7 @@ class MaskImage:
         self.undo_stack = []
         self.seed_mask = np.zeros(img.shape[:2], dtype="uint8")
         self.mask_stack_top = 0
-        self._initial_mask = np.zeros(img.shape[:2], dtype=np.bool)
+        self._initial_mask = np.zeros(img.shape[:2], dtype=np.bool_)
         # Second element means algorithm
         self.mask_stack.append((self._initial_mask, None, None))
         self.visible_area = None
@@ -500,7 +500,7 @@ class MaskImage:
 
         x, y, x_end, y_end = self.boxes_stack[-1]
         mask[y:y_end, x:x_end] = current_mask[y:y_end, x:x_end]
-        current_mask[y:y_end, x:x_end] = np.zeros((y_end - y, x_end - x)).astype(np.bool)
+        current_mask[y:y_end, x:x_end] = np.zeros((y_end - y, x_end - x)).astype(np.bool_)
 
         self.create_destination_layer_file()
         md5sum = CertificationData.calculate_md5sum(self.destination_layer_file)
@@ -880,7 +880,7 @@ class MaskImage:
 
     def find_inch_grid(self):
         adjusted_ppi = int(self.ppi_value / 4) * 4
-        self.inch_grid = np.zeros(self._img.shape[:2], dtype=np.bool)
+        self.inch_grid = np.zeros(self._img.shape[:2], dtype=np.bool_)
         self.inch_grid[:, :: adjusted_ppi] = True
         self.inch_grid[:: adjusted_ppi] = True
         # add quarter inch grid
@@ -966,7 +966,7 @@ class MaskImage:
         yy, xx = np.mgrid[: radius * 2, : radius * 2]
         circle = (xx - radius) ** 2 + (yy - radius) ** 2
         hole = circle > (radius * radius)
-        self.hole = hole.astype(np.bool)
+        self.hole = hole.astype(np.bool_)
         self.last_hole_radius = radius
 
     def _draw_xy(self, x, y, radius):

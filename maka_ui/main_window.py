@@ -1750,7 +1750,7 @@ class MainWindow(QMainWindow, MainWindowSubject, metaclass=MainWindowMeta):
 
         try:
             if mask is not None:
-                mask = np.asarray(body["mask"]).astype(np.bool)
+                mask = np.asarray(body["mask"]).astype(np.bool_)
                 self.ic.img._set_mask(mask)
                 self.ic.img._update_mask()
                 self.ic._draw_current()

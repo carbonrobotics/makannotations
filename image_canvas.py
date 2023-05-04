@@ -764,7 +764,7 @@ class ImageCanvas(QLabel):
             else:
                 mask = self.get_mask(layer)
                 if mask is not None:
-                    self.colors_masks.append([color, mask.astype(np.bool)])
+                    self.colors_masks.append([color, mask.astype(np.bool_)])
 
     def get_mask(self, layer):
         label_file = MaskImage.make_label_filename(self.path, self.filename, layer)

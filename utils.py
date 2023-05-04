@@ -133,7 +133,7 @@ def make_texture(shape: Tuple[int, int], texture_id: int) -> np.ndarray:
     else:
         raise ValueError(f"Unknown texture: {texture_id}")
 
-    return np.tile(base.astype(np.bool), (math.ceil(shape[0] / base.shape[0]), math.ceil(shape[1] / base.shape[1])))[
+    return np.tile(base.astype(np.bool_), (math.ceil(shape[0] / base.shape[0]), math.ceil(shape[1] / base.shape[1])))[
         : shape[0], : shape[1]
     ]
 
